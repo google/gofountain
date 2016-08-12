@@ -22,7 +22,7 @@ import (
 
 func TestLubyTransformBlockGenerator(t *testing.T) {
 	message := []byte("abcdefghijklmnopqrstuvwxyz")
-	codec := NewLubyCodec(4, rand.New(NewMersenneTwister(200)), solitonDistribution(4))
+	codec := NewLubyCodec(4, rand.New(NewMersenneTwister(200)), SolitonDistribution(4))
 
 	wantIndices := [][]int{
 		{0},
@@ -77,7 +77,7 @@ func TestLubyTransformBlockGenerator(t *testing.T) {
 
 func TestLubyDecoder(t *testing.T) {
 	message := []byte("abcdefghijklmnopqrstuvwxyz")
-	codec := NewLubyCodec(4, rand.New(NewMersenneTwister(200)), solitonDistribution(4))
+	codec := NewLubyCodec(4, rand.New(NewMersenneTwister(200)), SolitonDistribution(4))
 
 	encodeBlocks := []int64{7, 34, 5, 31, 25}
 	lubyBlocks := EncodeLTBlocks(message, encodeBlocks, codec)
