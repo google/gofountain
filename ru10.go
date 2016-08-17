@@ -208,3 +208,7 @@ func (d *ru10Decoder) Decode() []byte {
 	}
 	return out
 }
+
+func (d *ru10Decoder) XorCount() uint64 {
+	return 0
+}

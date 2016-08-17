@@ -89,6 +89,8 @@ type Decoder interface {
 	// Decode extracts the decoded message from the decoder. If the decoder does
 	// not have sufficient information to produce an output, returns a nil slice.
 	Decode() []byte
+
+	XorCount() uint64
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -194,6 +196,8 @@ type lubyDecoder struct {
 
 	// The sparse equation matrix used for decoding.
 	matrix sparseMatrix
+
+	XORCNT uint64
 }
 
 // newLubyDecoder creates a new decoder for a particular Luby Transform message.
@@ -212,7 +216,7 @@ func newLubyDecoder(c *lubyCodec, length int) *lubyDecoder {
 func (d *lubyDecoder) AddBlocks(blocks []LTBlock) bool {
 	for i := range blocks {
 		indices := d.codec.PickIndices(blocks[i].BlockCode)
-		d.matrix.addEquation(indices, block{data: blocks[i].Data})
+		d.XORCNT += d.matrix.addEquation(indices, block{data: blocks[i].Data})
 	}
 	return d.matrix.determined()
 }
@@ -224,8 +228,12 @@ func (d *lubyDecoder) Decode() []byte {
 		return nil
 	}
 
-	d.matrix.reduce()
+	d.XORCNT += d.matrix.reduce()
 
 	lenLong, lenShort, numLong, numShort := partition(d.messageLength, d.codec.SourceBlocks())
 	return d.matrix.reconstruct(d.messageLength, lenLong, lenShort, numLong, numShort)
+}
+
+func (d *lubyDecoder) XorCount() uint64 {
+	return d.XORCNT
 }

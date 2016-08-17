@@ -114,3 +114,7 @@ func (d *binaryDecoder) Decode() []byte {
 	lenLong, lenShort, numLong, numShort := partition(d.messageLength, d.codec.numSourceBlocks)
 	return d.matrix.reconstruct(d.messageLength, lenLong, lenShort, numLong, numShort)
 }
+
+func (d *binaryDecoder) XorCount() uint64 {
+	return 0
+}
