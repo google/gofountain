@@ -35,7 +35,7 @@ func TestSolitonDistribution(t *testing.T) {
 	tests = append(tests, 1, 10)
 
 	for _, n := range tests {
-		cdf := solitonDistribution(n)
+		cdf := SolitonDistribution(n)
 		if len(cdf) != n+1 {
 			t.Errorf("n=%d: Wrong length CDF: %d", n, len(cdf))
 			t.Log("CDF=", cdf)
@@ -59,7 +59,7 @@ func TestSolitonDistribution(t *testing.T) {
 }
 
 func TestRobustSolitonDistribution(t *testing.T) {
-	cdf := robustSolitonDistribution(10, 8, 0.1)
+	cdf := RobustSolitonDistribution(10, 8, 0.1)
 	if len(cdf) != 11 {
 		t.Errorf("Wrong length CDF: %d, should be 11", len(cdf))
 		t.Log("CDF=", cdf)
@@ -70,7 +70,7 @@ func TestRobustSolitonDistribution(t *testing.T) {
 		t.Log("CDF=", cdf)
 	}
 
-	if !almostEqual(cdf[1], .287474) {
+	if !almostEqual(cdf[1], .137210) {
 		t.Errorf("CDF[1] = %f, should be 0.287474", cdf[1])
 		t.Log("CDF=", cdf)
 	}

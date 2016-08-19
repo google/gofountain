@@ -27,11 +27,11 @@ import (
 // random number r (0 <= r < 1) and then find the smallest i such that
 // CDF[i] >= r.
 
-// solitonDistribution returns a CDF mapping for the soliton distribution.
+// SolitonDistribution returns a CDF mapping for the soliton distribution.
 // N (the number of elements in the CDF) cannot be less than 1
 // The CDF is one-based: the probability of picking 1 from the distribution
 // is CDF[1].
-func solitonDistribution(n int) []float64 {
+func SolitonDistribution(n int) []float64 {
 	cdf := make([]float64, n+1)
 	cdf[1] = 1 / float64(n)
 	for i := 2; i < len(cdf); i++ {
@@ -40,7 +40,7 @@ func solitonDistribution(n int) []float64 {
 	return cdf
 }
 
-// robustSolitonDistribution returns a CDF mapping for the robust solition
+// RobustSolitonDistribution returns a CDF mapping for the robust solition
 // distribution.
 // This is an addition to the soliton distribution with three parameters,
 // N, M, and delta.
@@ -51,7 +51,7 @@ func solitonDistribution(n int) []float64 {
 // result normalized.
 // The CDF is one-based: the probability of picking 1 from the distribution
 // is CDF[1].
-func robustSolitonDistribution(n int, m int, delta float64) []float64 {
+func RobustSolitonDistribution(n int, m int, delta float64) []float64 {
 	pdf := make([]float64, n+1)
 
 	pdf[1] = 1/float64(n) + 1/float64(m)
@@ -59,7 +59,7 @@ func robustSolitonDistribution(n int, m int, delta float64) []float64 {
 	for i := 2; i < len(pdf); i++ {
 		pdf[i] = (1 / (float64(i) * float64(i-1)))
 		if i < m {
-			pdf[i] = 1 / (float64(i) * float64(m))
+			pdf[i] += 1 / (float64(i) * float64(m))
 		}
 		if i == m {
 			pdf[i] += math.Log(float64(n)/(float64(m)*delta)) / float64(m)

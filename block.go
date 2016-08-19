@@ -14,6 +14,7 @@
 
 package fountain
 
+
 // A block represents a contiguous range of data being encoded or decoded,
 // or a block of coded data. Details of how the source text is split into blocks
 // is governed by the particular fountain code used.
@@ -45,7 +46,8 @@ func (b *block) empty() bool {
 // When this is done, padding bytes count as 0 (that is XOR identity), and the
 // destination block will be modified so that its data is large enough to
 // contain the result of the XOR.
-func (b *block) xor(a block) {
+func (b *block) xor(a block) uint64 {
+	var XORCNT uint64 = 0
 	if len(b.data) < len(a.data) {
 		var inc = len(a.data) - len(b.data)
 		b.data = append(b.data, make([]byte, inc)...)
@@ -58,7 +60,9 @@ func (b *block) xor(a block) {
 
 	for i := 0; i < len(a.data); i++ {
 		b.data[i] ^= a.data[i]
+		XORCNT++
 	}
+	return XORCNT
 }
 
 // partitionBytes partitions an input text into a sequence of p blocks. The
@@ -143,8 +147,8 @@ type sparseMatrix struct {
 // and then taking the symmetric difference of the coefficients of that matrix
 // row and the provided indices. (That is, the "set XOR".) Assumes both
 // coefficient slices are sorted.
-func (m *sparseMatrix) xorRow(s int, indices []int, b block) ([]int, block) {
-	b.xor(m.v[s])
+func (m *sparseMatrix) xorRow(s int, indices []int, b block) ([]int, block, uint64) {
+	var XORCNT uint64 = b.xor(m.v[s])
 
 	var newIndices []int
 	coeffs := m.coeff[s]
@@ -165,7 +169,7 @@ func (m *sparseMatrix) xorRow(s int, indices []int, b block) ([]int, block) {
 
 	newIndices = append(newIndices, coeffs[i:]...)
 	newIndices = append(newIndices, indices[j:]...)
-	return newIndices, b
+	return newIndices, b, XORCNT
 }
 
 // addEquation adds an XOR equation to the decode matrix. The online decode
@@ -174,13 +178,16 @@ func (m *sparseMatrix) xorRow(s int, indices []int, b block) ([]int, block) {
 // invariant that either coeff[i][0] == i or len(coeff[i]) == 0. That is, while
 // adding an equation to the matrix, it ensures that the decode matrix remains
 // triangular.
-func (m *sparseMatrix) addEquation(components []int, b block) {
+func (m *sparseMatrix) addEquation(components []int, b block) uint64 {
+	var XORCNT_TOTAL uint64 = 0
+	var XORCNT       uint64 = 0
 	// This loop reduces the incoming equation by XOR until it either fits into
 	// an empty row in the decode matrix or is discarded as redundant.
 	for len(components) > 0 && len(m.coeff[components[0]]) > 0 {
 		s := components[0]
 		if len(components) >= len(m.coeff[s]) {
-			components, b = m.xorRow(s, components, b)
+			components, b , XORCNT = m.xorRow(s, components, b)
+			XORCNT_TOTAL+=XORCNT
 		} else {
 			// Swap the existing row for the new one, reduce the existing one and
 			// see if it fits elsewhere.
@@ -193,6 +200,7 @@ func (m *sparseMatrix) addEquation(components []int, b block) {
 		m.coeff[components[0]] = components
 		m.v[components[0]] = b
 	}
+	return XORCNT_TOTAL
 }
 
 // Check to see if the decode matrix is fully specified. This is true when
@@ -211,13 +219,14 @@ func (m *sparseMatrix) determined() bool {
 // the matrix is triangular, and that the method is not called unless there is
 // enough data for a solution.
 // TODO(gbillock): Could profitably do this online as well?
-func (m *sparseMatrix) reduce() {
+func (m *sparseMatrix) reduce() uint64{
+	var XORCNT uint64 = 0
 	for i := len(m.coeff) - 1; i >= 0; i-- {
 		for j := 0; j < i; j++ {
 			ci, cj := m.coeff[i], m.coeff[j]
 			for k := 1; k < len(cj); k++ {
 				if cj[k] == ci[0] {
-					m.v[j].xor(m.v[i])
+					XORCNT += m.v[j].xor(m.v[i])
 					continue
 				}
 			}
@@ -225,6 +234,7 @@ func (m *sparseMatrix) reduce() {
 		// All but the leading coefficient in the rows have been reduced out.
 		m.coeff[i] = m.coeff[i][0:1]
 	}
+	return XORCNT
 }
 
 // reconstruct pastes the fully reduced values in the sparse matrix result column

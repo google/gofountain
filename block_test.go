@@ -175,11 +175,15 @@ func TestMatrixXorRow(t *testing.T) {
 		m := sparseMatrix{coeff: [][]int{test.arow}, v: []block{block{[]byte{1}, 0}}}
 
 		testb := block{[]byte{2}, 0}
-		test.r, testb = m.xorRow(0, test.r, testb)
+		xorcnt := uint64(0)
+		test.r, testb, xorcnt = m.xorRow(0, test.r, testb)
 
 		// Needed since under DeepEqual the nil and the empty slice are not equal.
 		if test.r == nil {
 			test.r = make([]int, 0)
+		}
+		if xorcnt == 0 {
+			t.Errorf("XORCNT failed")
 		}
 		if !reflect.DeepEqual(test.r, test.result) {
 			t.Errorf("XOR row result got %v, should be %v", test.r, test.result)

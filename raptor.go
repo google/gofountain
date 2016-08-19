@@ -368,3 +368,7 @@ func (d *raptorDecoder) Decode() []byte {
 	}
 	return out
 }
+
+func (d *raptorDecoder) XorCount() uint64 {
+	return 0
+}
