@@ -59,7 +59,7 @@ func robustSolitonDistribution(n int, m int, delta float64) []float64 {
 	for i := 2; i < len(pdf); i++ {
 		pdf[i] = (1 / (float64(i) * float64(i-1)))
 		if i < m {
-			pdf[i] = 1 / (float64(i) * float64(m))
+			pdf[i] += 1 / (float64(i) * float64(m))
 		}
 		if i == m {
 			pdf[i] += math.Log(float64(n)/(float64(m)*delta)) / float64(m)
