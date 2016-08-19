@@ -70,7 +70,7 @@ func TestRobustSolitonDistribution(t *testing.T) {
 		t.Log("CDF=", cdf)
 	}
 
-	if !almostEqual(cdf[1], .287474) {
+	if !almostEqual(cdf[1], .137210) {
 		t.Errorf("CDF[1] = %f, should be 0.287474", cdf[1])
 		t.Log("CDF=", cdf)
 	}
